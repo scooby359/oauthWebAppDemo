@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -32,8 +32,8 @@ export class HttpService {
     }
 
     private getHeaders() {
-      return {
-        Authorization: `Bearer ${this.authService.idToken}`
-      };
+      return new HttpHeaders({
+        Authorization: `Bearer ${this.authService.getToken()}`
+      });
     }
 }

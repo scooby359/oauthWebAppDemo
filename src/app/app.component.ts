@@ -14,22 +14,12 @@ export class AppComponent {
     public authService: AuthService,
     public httpService: HttpService
   ) {
-    authService.handleAuthentication();
    }
 
 // tslint:disable-next-line: use-life-cycle-interface
-   ngOnInit(): void {
-     if (localStorage.getItem('isLoggedIn') === 'true') {
-       this.authService.renewTokens();
-     }
-   }
 
    logIdToken() {
-     console.log(`ID Token: ${this.authService.idToken}`);
-   }
-
-   logAccessToken() {
-     console.log(`Access token: ${this.authService.accessToken}`);
+     console.log(`ID Token: ${this.authService.getToken()}`);
    }
 
    get() {
@@ -45,5 +35,13 @@ export class AppComponent {
    post() {
      this.httpService.postTest()
      .subscribe(res => console.log(res));
+   }
+
+   getRefreshToken() {
+     console.log(`Refresh token: `, this.authService.getRefreshToken());
+   }
+
+   isLoggedIn() {
+     console.log(`Is logged in: `, this.authService.isLoggedIn());
    }
 }

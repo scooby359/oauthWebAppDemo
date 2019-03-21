@@ -1,93 +1,56 @@
 import { Injectable } from '@angular/core';
-import * as auth0 from 'auth0-js';
-import { Router } from '@angular/router';
+import { OAuthService } from 'angular-oauth2-oidc';
+import { JwksValidationHandler } from 'angular-oauth2-oidc';
+import { AuthConfig } from 'angular-oauth2-oidc';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  private _idToken: string;
-  private _accessToken: string;
-  private _expiresAt: number;
+  constructor(private auth: OAuthService) {
 
-  auth0 = new auth0.WebAuth({
-    clientID: '3nAWcHTgernH5H5OYZji7E3LD1Bqhtwj',
-    domain: 'dev-rf8xww-i.eu.auth0.com',
-    responseType: 'token id_token',
-    redirectUri: 'http://localhost:4200/callback',
-    scope: 'openid'
-  });
+    const authConfig: AuthConfig = {
+      issuer: `https://dev-rf8xww-i.eu.auth0.com/`, // issuer auth url
+      redirectUri: `${window.location.origin}/callback`, // redirect uri
+      clientId: `3nAWcHTgernH5H5OYZji7E3LD1Bqhtwj`, // client id
+      scope: `openid profile email` // permission scope
+    };
 
-  constructor(
-    public router: Router
-  ) {
-    this._idToken = '';
-    this._accessToken = '';
-    this._expiresAt = 0;
+    console.log(`Config: ${authConfig}`);
+
+    this.auth.configure(authConfig);
+    this.auth.tokenValidationHandler = new JwksValidationHandler();
+    this.auth.loadDiscoveryDocumentAndTryLogin();
   }
 
-  get accessToken(): string {
-    return this._accessToken;
+  login() {
+    console.log(`Login called`);
+    return this.auth.initImplicitFlow();
   }
 
-  get idToken(): string {
-    return this._idToken;
+  logout() {
+    console.log(`Logout called`);
+    this.auth.logOut();
   }
 
-  public login(): void {
-    this.auth0.authorize();
+  getClaim() {
+    const claims = this.auth.getIdentityClaims();
+    if (!claims) {
+      return claims;
+    }
   }
 
-  public handleAuthentication(): void {
-    this.auth0.parseHash((err, authResult) => {
-      if (authResult && authResult.accessToken && authResult.idToken) {
-        window.location.hash = '';
-        this.localLogin(authResult);
-        this.router.navigate(['/home']);
-      } else if (err) {
-        this.router.navigate(['/logout']);
-        console.log(err);
-      }
-    });
+  getToken() {
+    return this.auth.getIdToken();
   }
 
-  private localLogin(authResult): void {
-    // Set isLoggedIn flag in localStorage
-    localStorage.setItem('isLoggedIn', 'true');
-    // Set the time that the access token will expire at
-    const expiresAt = (authResult.expiresIn * 1000) + new Date().getTime();
-    this._accessToken = authResult.accessToken;
-    this._idToken = authResult.idToken;
-    this._expiresAt = expiresAt;
+  getRefreshToken() {
+    return this.auth.getRefreshToken();
   }
 
-  public renewTokens(): void {
-    this.auth0.checkSession({}, (err, authResult) => {
-      if (authResult && authResult.accessToken && authResult.idToken) {
-        this.localLogin(authResult);
-      } else if (err) {
-        alert(`Could not get a new token (${err.error}: ${err.error_description}).`);
-        this.logout();
-      }
-    });
+  isLoggedIn() {
+    return this.auth.hasValidIdToken();
   }
-
-  public logout(): void {
-    // Remove tokens and expiry time
-    this._accessToken = '';
-    this._idToken = '';
-    this._expiresAt = 0;
-    // Remove isLoggedIn flag from localStorage
-    localStorage.removeItem('isLoggedIn');
-    // Go back to the home route
-    this.router.navigate(['/']);
-  }
-
-  public isAuthenticated(): boolean {
-    // Check whether the current time is past the
-    // access token's expiry time
-    return new Date().getTime() < this._expiresAt;
-  }
-
 }
+

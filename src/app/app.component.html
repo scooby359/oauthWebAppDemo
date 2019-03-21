@@ -1,15 +1,18 @@
 <div>
-  <div *ngIf="!authService.isAuthenticated()">
+  <div>
     <button (click)="authService.login()">LOG IN</button>
   </div>
-  <div *ngIf="authService.isAuthenticated()">
+  <div>
     <button (click)="authService.logout()">LOG OUT</button>
   </div>
   <div>
-    <button (click)="logAccessToken()">LOG ACCESS TOKEN</button>
+    <button (click)="logIdToken()">LOG ID TOKEN</button>
   </div>
   <div>
-    <button (click)="logIdToken()">LOG ID TOKEN</button>
+    <button (click)="getRefreshToken()">GET REFRESH TOKEN</button>
+  </div>
+  <div>
+    <button (click)="isLoggedIn()">IS LOGGED IN</button>
   </div>
 </div>
 
